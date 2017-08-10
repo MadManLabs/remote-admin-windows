@@ -106,5 +106,6 @@ ctrl.controller('powershellController', function($scope) {
 
   socket.on('output', function(output) {
     $('#output').text(output);
+    $('#output').prepend("<button id='run' ng-click='sendCommand()'>Run Script</button>");
   });
 });
