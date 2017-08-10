@@ -1,0 +1,21 @@
+extends layout.pug
+
+block navbar
+  a(href="/details").uk-navbar-item.uk-logo System Details
+
+block content
+  div(ng-controller="detailsController")
+    h2.uk-heading-divider.uk-text-center.uk-text-primary Windows System Details
+    #infoContainer
+      h3.uk-text-center System Details
+      table#infoTable.uk-table.uk-table-striped.uk-table-small
+    #drivesContainer
+      h3.uk-text-center Drives
+      table#drives.uk-table.uk-table-striped.uk-table-small
+        thead
+          tr
+            th.uk-text-primary Name
+            th.uk-text-primary Free
+            th.uk-text-primary Total
+            th.uk-text-primary Used
+        tbody#driveTable

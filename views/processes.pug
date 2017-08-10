@@ -1,0 +1,23 @@
+extends layout.pug
+
+block navbar
+  a(href="/processes").uk-navbar-item.uk-logo Process Manager
+
+block content
+  div(ng-controller="processesController")
+    h2.uk-heading-divider.uk-text-center.uk-text-primary Windows Processes
+    input(type="text", placeholder="Search...", ng-model="filter")#search.uk-input.uk-form.uk-form-width-large.uk-margin-small.uk-align-center
+    table#procTable.uk-table.uk-table-striped.uk-table-small
+      thead
+        tr
+          th.uk-text-primary ID
+            button(uk-icon="icon: arrow-up; ratio: 1").uk-text-primary
+            button(uk-icon="icon: arrow-down; ratio: 1").uk-text-primary
+          th.uk-text-primary Name
+            button(uk-icon="icon: arrow-up; ratio: 1").uk-text-primary
+            button(uk-icon="icon: arrow-down; ratio: 1").uk-text-primary
+          th.uk-text-primary Memory (MB)
+            button(uk-icon="icon: arrow-up; ratio: 1").uk-text-primary
+            button(uk-icon="icon: arrow-down; ratio: 1").uk-text-primary
+          th.uk-text-primary Kill
+      tbody#procBody

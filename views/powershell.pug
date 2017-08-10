@@ -1,0 +1,10 @@
+extends layout.pug
+
+block navbar
+  a(href="/powershell").uk-navbar-item.uk-logo Powershell Terminal
+
+block content
+  div(ng-controller="powershellController")
+    pre#output
+      button(ng-click="sendCommand()")#run Run Script
+    div#editor
