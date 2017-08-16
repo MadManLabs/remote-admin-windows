@@ -37,6 +37,8 @@ SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPref
 
 ENV NPM_CONFIG_LOGLEVEL info
 
+COPY /nodejs /nodejs
+
 RUN New-Item $($env:APPDATA + '\npm') ; \
     $env:PATH = 'C:\nodejs;{0}\npm;{1}' -f $env:APPDATA, $env:PATH ; \
     [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine)
