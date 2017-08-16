@@ -1,4 +1,4 @@
-FROM jacfaersome/node
+FROM jacfearsome/node
 
 ADD . /remote-admin
 WORKDIR C:\remote-admin
