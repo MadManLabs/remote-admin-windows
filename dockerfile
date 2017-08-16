@@ -4,7 +4,7 @@ SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPref
 
 RUN Invoke-WebRequest $('https://nodejs.org/dist/v6.11.2/node-v6.11.2-win-x64.zip' -f $env:NODE_VERSION) -OutFile 'node.zip' -UseBasicParsing ; \
     Expand-Archive node.zip -DestinationPath C:\ ; \
-    Rename-Item -Path 'C:\node-v6.11.2-win-x64' -NewName 'C:\nodejs'
+    Rename-Item -Path C:/node-v6.11.2-win-x64 -NewName C:/nodejs
 
 ADD . /remote-admin
 
