@@ -37,16 +37,16 @@ SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPref
 
 ENV NPM_CONFIG_LOGLEVEL info
 
+RUN New-Item $($env:APPDATA + '\npm') ; \
+    $env:PATH = 'C:\nodejs;{0}\npm;{1}' -f $env:APPDATA, $env:PATH ; \
+    [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine)
+
 ADD . /remote-admin
 
 WORKDIR /remote-admin
 
-RUN npm install
+RUN ["C:\nodejs\npm", "install"]
 
 EXPOSE 6060
-
-RUN New-Item $($env:APPDATA + '\npm') ; \
-    $env:PATH = 'C:\nodejs;{0}\npm;{1}' -f $env:APPDATA, $env:PATH ; \
-    [Environment]::SetEnvironmentVariable('PATH', $env:PATH, [EnvironmentVariableTarget]::Machine)
 
 CMD ["C:\nodejs\node.exe", "server.js"]
