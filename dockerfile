@@ -10,8 +10,8 @@ ADD . /remote-admin
 
 WORKDIR /remote-admin
 
-RUN ["C:\nodejs\npm", "install"]
+RUN ["C:/nodejs/npm", "install"]
 
 EXPOSE 6060
 
-CMD ["C:\nodejs\node.exe", "server.js"]
+CMD ["C:/nodejs/node.exe", "server.js"]
