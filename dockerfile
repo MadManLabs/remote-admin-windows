@@ -1,7 +1,7 @@
 FROM jacfearsome/node
 
 ADD . /remote-admin
-WORKDIR C:\remote-admin
+WORKDIR /remote-admin
 RUN npm install
 EXPOSE 6060
 
