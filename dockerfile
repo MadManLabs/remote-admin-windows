@@ -5,4 +5,4 @@ WORKDIR /remote-admin
 RUN npm install
 EXPOSE 6060
 
-CMD ["node.exe", "server.js"]
+CMD ["C:\node\node.exe", "server.js"]
