@@ -6,6 +6,16 @@ block navbar
 block content
   div(ng-controller="filesController")
     h2.uk-heading-divider.uk-text-center.uk-text-primary File Explorer
+    ul#fileActions.uk-iconnav
+      li
+        button(uk-icon="icon: arrow-left; ratio: 2")#goup.uk-text-primary.dropup
+      li
+        button(uk-icon="icon: home; ratio: 2")#gohome.uk-text-primary
+      li
+        button(uk-icon="icon: file; ratio: 2")#createfile.uk-text-primary
+      li
+        button(uk-icon="icon: folder; ratio: 2")#createfolder.uk-text-primary
+    input(type="text", placeholder="Enter path...", ng-model="location", enter="golocation()")#goloc.uk-input.uk-form.uk-form-width-extra-large.uk-margin-small
     #filePanel
       ul#fileList.uk-list.uk-list-striped
     input(type="hidden", value= path)#path

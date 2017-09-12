@@ -145,20 +145,153 @@ module.exports = function(io) {
       });
     });
 
-    client.on('move-file', function(data) {
-      var array = [data.oldpath, data.newpath];
-      moveFile(data, function(error, result) {
+    client.on('get-drives', function(nothing) {
+      listDriveFolders("", function(error, drives) {
         if (error) {
           io.emit('error', error);
           console.log(error);
         } else {
-          io.emit('show-move-result', result);
+          io.emit('list-files', drives);
+        }
+      });
+    });
+
+    client.on('move-file', function(data) {
+      var combined = data.oldpath + "|" + data.newpath;
+      moveFile(combined, function(error, result) {
+        if (error) {
+          io.emit('error', error);
+          console.log(error);
+        } else {
+          io.emit('show-result', result);
+        }
+      });
+    });
+
+    client.on('move-folder', function(data) {
+      var combined = data.oldpath + "|" + data.newpath;
+      moveFile(combined, function(error, result) {
+        if (error) {
+          io.emit('error', error);
+          console.log(error);
+        } else {
+          io.emit('show-result', result);
+        }
+      });
+    });
+
+    client.on('new-file', function(newflpth) {
+      newFile(newflpth, function(error, result) {
+        if (error) {
+          io.emit('error', error);
+          console.log(error);
+        } else {
+          io.emit('show-result', result);
+        }
+      });
+    });
+
+    client.on('new-folder', function(newflpth) {
+      newFolder(newflpth, function(error, result) {
+        if (error) {
+          io.emit('error', error);
+          console.log(error);
+        } else {
+          io.emit('show-result', result);
         }
       });
     });
   });
 }
 
+var newFolder =  edge.func(function() {/*
+    #r "System.Management.dll"
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Management;
+    using System.Text;
+    using System.Diagnostics;
+    using System.Threading.Tasks;
+    using System.IO;
+
+
+    public class Startup
+    {
+      public async Task<object> Invoke(string input)
+      {
+        if (!Directory.Exists(input))
+        {
+          Directory.CreateDirectory(input);
+          return "Folder successfully created";
+        } else {
+          return "A folder with the same name already exists";
+        }
+        return "Nothing happened";        
+      }
+    }
+*/});
+var newFile =  edge.func(function() {/*
+    #r "System.Management.dll"
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Management;
+    using System.Text;
+    using System.Diagnostics;
+    using System.Threading.Tasks;
+    using System.IO;
+
+
+    public class Startup
+    {
+      public async Task<object> Invoke(string input)
+      {
+        if (!File.Exists(input))
+        {
+          File.Create(input);
+          return "File successfully created";
+        } else {
+          return "A file with the same name already exists";
+        }
+        return "Nothing happened";        
+      }
+    }
+*/});
+var moveFolder =  edge.func(function() {/*
+    #r "System.Management.dll"
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Management;
+    using System.Text;
+    using System.Diagnostics;
+    using System.Threading.Tasks;
+    using System.IO;
+
+
+    public class Startup
+    {
+      public async Task<object> Invoke(string input)
+      {
+        String tosplit = input;
+        Char delimiter = '|';
+        string oldpath = tosplit.Split(delimiter)[0].ToString();
+        string newpath = tosplit.Split(delimiter)[1].ToString();
+        if (!Directory.Exists(newpath))
+        {
+          Directory.Move(oldpath, newpath);
+          return "Folder successfully moved";
+        } else {
+          return "A folder with the same name already exists in that folder";
+        }
+        return "Nothing happened";        
+      }
+    }
+*/});
 var moveFile =  edge.func(function() {/*
     #r "System.Management.dll"
 
@@ -174,11 +307,15 @@ var moveFile =  edge.func(function() {/*
 
     public class Startup
     {
-      public async Task<object> Invoke(string[] data)
+      public async Task<object> Invoke(string input)
       {
-        if (!File.Exists(data[1]))
+        String tosplit = input;
+        Char delimiter = '|';
+        string oldpath = tosplit.Split(delimiter)[0].ToString();
+        string newpath = tosplit.Split(delimiter)[1].ToString();
+        if (!File.Exists(newpath))
         {
-          File.Move(data[0], data[1]);
+          File.Move(oldpath, newpath);
           return "File successfully moved";
         } else {
           return "A file with the same name already exists in that folder";

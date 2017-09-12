@@ -206,9 +206,11 @@ ctrl.controller('servicesController', function($scope) {
 });
 
 ctrl.controller('filesController', function($scope) {
+  var upfld = "";
   socket.on('list-files', function(files) {
     $('body').addClass('loaded');
     $('#fileList').empty();
+    $('#fileList').append("<li class='dropup dropzone drag-drop'><a class='uk-margin-small-right' data-uk-icon='icon: arrow-up; ratio: 1'></a>Drag files here to move them to the previous directory<a class='uk-margin-small-left' data-uk-icon='icon: arrow-up; ratio: 1'></a></li>");
     for (i in files) {
       var filefolder = files[i];
       if (filefolder.Type == "drive") {
@@ -221,11 +223,15 @@ ctrl.controller('filesController', function($scope) {
     }
     $('.drivepath').click(function() {
       var location = $(this).attr('id');
+      upfld = location;
+      $('#goloc').val(upfld);
       $('body').removeClass('loaded');
       socket.emit('get-files', location);
     });
     $('.folderpath').click(function() {
       var location = $(this).attr('id');
+      upfld = location;
+      $('#goloc').val(upfld);
       $('body').removeClass('loaded');
       socket.emit('get-files', location);
     });
@@ -250,7 +256,6 @@ ctrl.controller('filesController', function($scope) {
         
       }
     });
-
     function dragMoveListener (event) {
       var target = event.target,
           // keep the dragged position in the data-x/data-y attributes
@@ -266,7 +271,6 @@ ctrl.controller('filesController', function($scope) {
       target.setAttribute('data-x', x);
       target.setAttribute('data-y', y);
     }
-    
     interact('.dropzone').dropzone({
       // only accept elements matching this CSS selector
       accept: '.todrag',
@@ -293,18 +297,28 @@ ctrl.controller('filesController', function($scope) {
         event.relatedTarget.classList.remove('can-drop');
       },
       ondrop: function (event) {
-        $(event.relatedTarget).hide();
         if ($(event.relatedTarget).hasClass('dropzone')) {
+          var name = $(event.relatedTarget).children('.folderpath').text();
           var oldpath = $(event.relatedTarget).children('.folderpath').attr('id');
-          var newpath = $(event.target).children('.folderpath').attr('id');
+          if ($(event.target).hasClass('dropup')) {
+            var nextpath = upfld.substring(upfld.lastIndexOf('\\'), -1) + "\\" + name;
+          } else {
+            var newpath = $(event.target).children('.folderpath').attr('id');
+            var nextpath = newpath + "\\" + name;
+          }
+          socket.emit('move-file', {'newpath': nextpath, 'oldpath': oldpath});
         } else if ($(event.relatedTarget).hasClass('dropfile')) {
           var name = $(event.relatedTarget).children('.filepath').text();
           var oldpath = $(event.relatedTarget).children('.filepath').attr('id');
-          var prevpath = oldpath + "\\" + name;
-          var newpath = $(event.relatedTarget).children('.folderpath').attr('id');
-          var nextpath = newpath + "\\" + name;
-          socket.emit('move-file', {'newpath': newpath, 'oldpath': oldpath});
+          if ($(event.target).hasClass('dropup')) {
+            var nextpath = upfld.substring(upfld.lastIndexOf('\\'), -1) + "\\" + name;
+          } else {
+            var newpath = $(event.target).children('.folderpath').attr('id');
+            var nextpath = newpath + "\\" + name;
+          }
+          socket.emit('move-file', {'newpath': nextpath, 'oldpath': oldpath});
         }
+        $(event.relatedTarget).hide();
       },
       ondropdeactivate: function (event) {
         // remove active dropzone feedback
@@ -313,7 +327,8 @@ ctrl.controller('filesController', function($scope) {
       }
     });
   });
-  socket.on('show-move-result', function(result) {
+  socket.on('show-result', function(result) {
+    socket.emit('get-files', upfld);
     UIkit.notification({
       message: result,
       status: 'primary',
@@ -329,4 +344,35 @@ ctrl.controller('filesController', function($scope) {
         timeout: 3000
       });
   });
+  $('#goup').click(function() {
+    $('body').removeClass('loaded');
+    upfld = upfld.substring(upfld.lastIndexOf('\\'), -1);
+    if (upfld.length > 3) {
+      socket.emit('get-files', upfld);
+      $('#goloc').val(upfld);
+    } else {
+      socket.emit('get-drives', "");
+    }    
+  });
+  $('#gohome').click(function() {
+    $('body').removeClass('loaded');
+    socket.emit('get-drives', "");
+    $('#goloc').val("");
+  });
+  $('#createfile').click(function() {
+    $('body').removeClass('loaded');
+    var newfile = prompt("Please enter a name for the new file:");
+    var newflpth = upfld + "\\" + newfile;
+    socket.emit('new-file', newflpth);
+  });
+  $('#createfolder').click(function() {
+    $('body').removeClass('loaded');
+    var newfolder = prompt("Please enter a name for the new folder:");
+    var newflpth = upfld + "\\" + newfolder;
+    socket.emit('new-folder', newflpth);
+  });
+  $scope.golocation = function() {
+    upfld = $scope.location;
+    socket.emit('get-files', $scope.location);
+  };
 });
