@@ -6,6 +6,7 @@ block navbar
 block content
   div(ng-controller="processesController")
     h2.uk-heading-divider.uk-text-center.uk-text-primary Windows Processes
+    button(uk-icon="icon: plus-circle; ratio: 1")#newproc.uk-text-primary
     input(type="text", placeholder="Search...", ng-model="filter")#search.uk-input.uk-form.uk-form-width-large.uk-margin-small.uk-align-center
     table#procTable.uk-table.uk-table-striped.uk-table-small
       thead

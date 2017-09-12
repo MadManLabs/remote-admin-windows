@@ -34,7 +34,7 @@ module.exports = function(io) {
       }
     });
 
-    listSoftware("", function(error, software) {
+    /*listSoftware("", function(error, software) {
       if (error) {
         io.emit('error', error);
           console.log(error);
@@ -50,7 +50,7 @@ module.exports = function(io) {
       } else {
         io.emit('list-services', services);
       }
-    });
+    });*/
 
     listDriveFolders("", function(error, drives) {
       if (error) {
@@ -59,6 +59,26 @@ module.exports = function(io) {
       } else {
         io.emit('list-files', drives);
       }
+    });
+
+    
+
+    client.on('start-process', function(proc) {
+      startProcess(proc, function(error, nothing) {
+        if (error) {
+          io.emit('error', error);
+          console.log(error);
+        } else {
+          io.emit('start-proc-succ', "");
+          listProcesses("", function(error, processes) {
+            if (error) {
+              io.emit('error', error);
+            } else {
+              io.emit('list-processes', processes);
+            }
+          });
+        }
+      });
     });
 
     client.on('kill-process', function(proc) {
@@ -170,7 +190,7 @@ module.exports = function(io) {
 
     client.on('move-folder', function(data) {
       var combined = data.oldpath + "|" + data.newpath;
-      moveFile(combined, function(error, result) {
+      moveFolder(combined, function(error, result) {
         if (error) {
           io.emit('error', error);
           console.log(error);
@@ -722,6 +742,27 @@ var killProcess = edge.func(function() {/*
             int procid = Int32.Parse(input);
             Process p = Process.GetProcessById(procid);
             p.Kill();
+            return "";
+        }
+    }
+*/});
+var startProcess = edge.func(function() {/*
+    #r "System.Management.dll"
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Management;
+    using System.Text;
+    using System.Diagnostics;
+    using System.Threading.Tasks;
+
+
+    public class Startup
+    {
+        public async Task<object> Invoke(string input)
+        {
+            Process.Start(input);
             return "";
         }
     }

@@ -74,6 +74,14 @@ ctrl.controller('processesController', function($scope) {
       timeout: 5000
     });
   });
+  socket.on('start-proc-succ', function(nothing) {
+    UIkit.notification({
+      message: "process started",
+      status: 'primary',
+      pos: 'top-center',
+      timeout: 5000
+    });
+  });
   socket.on('error', function(error) {
       UIkit.notification({
         message: "An error occured",
@@ -81,6 +89,20 @@ ctrl.controller('processesController', function($scope) {
         pos: 'top-center',
         timeout: 3000
       });
+  });
+  $('#newproc').click(function() {
+    var proc = prompt("Please enter the full path of the executable:");
+    if (proc == "") {
+      UIkit.notification({
+        message: "you must specify an executable",
+        status: 'primary',
+        pos: 'top-center',
+        timeout: 5000
+      });
+    } else {
+      socket.emit('start-process', proc);
+      $('body').removeClass('loaded');
+    }
   });
 });
 
@@ -210,7 +232,8 @@ ctrl.controller('filesController', function($scope) {
   socket.on('list-files', function(files) {
     $('body').addClass('loaded');
     $('#fileList').empty();
-    $('#fileList').append("<li class='dropup dropzone drag-drop'><a class='uk-margin-small-right' data-uk-icon='icon: arrow-up; ratio: 1'></a>Drag files here to move them to the previous directory<a class='uk-margin-small-left' data-uk-icon='icon: arrow-up; ratio: 1'></a></li>");
+    $('#fileList').append("<li class='dropdown dropzone drag-drop'><a class='uk-margin-small-right' data-uk-icon='icon: close; ratio: 1'></a>Drag files here to delete them permanently<a class='uk-margin-small-left' data-uk-icon='icon: close; ratio: 1'></a></li>");
+    $('#fileList').append("<li class='dropup dropzone drag-drop'><a class='uk-margin-small-right' data-uk-icon='icon: arrow-up; ratio: 1'></a>Drag files here to move them to the parent directory<a class='uk-margin-small-left' data-uk-icon='icon: arrow-up; ratio: 1'></a></li>");
     for (i in files) {
       var filefolder = files[i];
       if (filefolder.Type == "drive") {
@@ -301,22 +324,35 @@ ctrl.controller('filesController', function($scope) {
           var name = $(event.relatedTarget).children('.folderpath').text();
           var oldpath = $(event.relatedTarget).children('.folderpath').attr('id');
           if ($(event.target).hasClass('dropup')) {
-            var nextpath = upfld.substring(upfld.lastIndexOf('\\'), -1) + "\\" + name;
+            var nextpath = oldpath.substring(oldpath.lastIndexOf('\\'), -1) + "\\" + name;
           } else {
             var newpath = $(event.target).children('.folderpath').attr('id');
             var nextpath = newpath + "\\" + name;
           }
-          socket.emit('move-file', {'newpath': nextpath, 'oldpath': oldpath});
+          socket.emit('move-folder', {'newpath': nextpath, 'oldpath': oldpath});
         } else if ($(event.relatedTarget).hasClass('dropfile')) {
           var name = $(event.relatedTarget).children('.filepath').text();
           var oldpath = $(event.relatedTarget).children('.filepath').attr('id');
           if ($(event.target).hasClass('dropup')) {
-            var nextpath = upfld.substring(upfld.lastIndexOf('\\'), -1) + "\\" + name;
+            var nextpath = oldpath.substring(oldpath.lastIndexOf('\\'), -1) + "\\" + name;
+            socket.emit('move-file', {'newpath': nextpath, 'oldpath': oldpath});
+          } else if ($(event.target).hasClass('dropdown')) {
+            var delcheck = confirm("Are you sure you want to delete this file?");
+            if (delcheck) {
+              socket.emit('delete-file', oldpath);
+            } else {
+              UIkit.notification({
+                message: "deletion cancelled",
+                status: 'primary',
+                pos: 'top-center',
+                timeout: 2000
+              });
+            }
           } else {
             var newpath = $(event.target).children('.folderpath').attr('id');
             var nextpath = newpath + "\\" + name;
+            socket.emit('move-file', {'newpath': nextpath, 'oldpath': oldpath});
           }
-          socket.emit('move-file', {'newpath': nextpath, 'oldpath': oldpath});
         }
         $(event.relatedTarget).hide();
       },
@@ -360,19 +396,39 @@ ctrl.controller('filesController', function($scope) {
     $('#goloc').val("");
   });
   $('#createfile').click(function() {
-    $('body').removeClass('loaded');
     var newfile = prompt("Please enter a name for the new file:");
-    var newflpth = upfld + "\\" + newfile;
-    socket.emit('new-file', newflpth);
+    if (newfile == "") {
+      UIkit.notification({
+        message: "Please enter a file name",
+        status: 'primary',
+        pos: 'top-center',
+        timeout: 5000
+      });
+    } else {
+      $('body').removeClass('loaded');
+      var newflpth = upfld + "\\" + newfile;
+      socket.emit('new-file', newflpth);
+    }
   });
   $('#createfolder').click(function() {
-    $('body').removeClass('loaded');
     var newfolder = prompt("Please enter a name for the new folder:");
-    var newflpth = upfld + "\\" + newfolder;
-    socket.emit('new-folder', newflpth);
+    if (newfolder == "") {
+      UIkit.notification({
+        message: "Please enter a folder name",
+        status: 'primary',
+        pos: 'top-center',
+        timeout: 5000
+      });
+    } else {
+      $('body').removeClass('loaded');
+      var newflpth = upfld + "\\" + newfolder;
+      socket.emit('new-folder', newflpth);
+    }
   });
   $scope.golocation = function() {
-    upfld = $scope.location;
-    socket.emit('get-files', $scope.location);
+    if ($scope.location == "") {
+      upfld = $scope.location;
+      socket.emit('get-files', $scope.location);
+    }
   };
 });
