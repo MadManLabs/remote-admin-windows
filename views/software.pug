@@ -1,0 +1,33 @@
+extends layout.pug
+
+block navbar
+  a(href="/software").uk-navbar-item.uk-logo Software
+
+block content
+  div(ng-controller="softwareController")
+    h2.uk-heading-divider.uk-text-center.uk-text-primary Installed Software
+    input(type="text", placeholder="Search...", ng-model="filter")#search.uk-input.uk-form.uk-form-width-large.uk-margin-small.uk-align-center
+    table#softTable.uk-table.uk-table-striped.uk-table-small
+      thead
+        tr
+          th.uk-text-primary Name
+            button(uk-icon="icon: arrow-up; ratio: 1").uk-text-primary
+            button(uk-icon="icon: arrow-down; ratio: 1").uk-text-primary
+          th.uk-text-primary Description
+            button(uk-icon="icon: arrow-up; ratio: 1").uk-text-primary
+            button(uk-icon="icon: arrow-down; ratio: 1").uk-text-primary
+          th.uk-text-primary Install Date
+            button(uk-icon="icon: arrow-up; ratio: 1").uk-text-primary
+            button(uk-icon="icon: arrow-down; ratio: 1").uk-text-primary
+          th.uk-text-primary Vendor
+            button(uk-icon="icon: arrow-up; ratio: 1").uk-text-primary
+            button(uk-icon="icon: arrow-down; ratio: 1").uk-text-primary
+          th.uk-text-primary Version
+            button(uk-icon="icon: arrow-up; ratio: 1").uk-text-primary
+            button(uk-icon="icon: arrow-down; ratio: 1").uk-text-primary
+          th.uk-text-primary Uninstall
+      tbody#softBody
+    div#loader-wrapper
+      div#loader
+      div.loader-section.section-left
+      div.loader-section.section-right

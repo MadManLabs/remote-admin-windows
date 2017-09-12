@@ -303,5 +303,35 @@ module.exports = {
         return "";
         }
     }
+*/}),
+  'listSoftware': edge.func(function() {/*
+    #r "System.Management.dll"
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Management;
+    using System.Text;
+    using System.Diagnostics;
+    using System.Threading.Tasks;
+
+
+    public class Startup
+    {
+
+        public async Task<object> Invoke(object input)
+        {
+
+        ManagementScope scope = new ManagementScope(@"\\.\root\cimv2");
+        scope.Connect();
+
+        ObjectQuery query = new ObjectQuery("SELECT * FROM Win32_Product");
+        ManagementObjectSearcher searcher = new ManagementObjectSearcher(scope, query);
+
+        ManagementObjectCollection queryCollection = searcher.Get();
+        return queryCollection;
+        }
+    }
 */})
+
 };

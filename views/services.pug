@@ -1,0 +1,36 @@
+extends layout.pug
+
+block navbar
+  a(href="/services").uk-navbar-item.uk-logo Services
+
+block content
+  div(ng-controller="servicesController")
+    h2.uk-heading-divider.uk-text-center.uk-text-primary Services
+    input(type="text", placeholder="Search...", ng-model="filter")#search.uk-input.uk-form.uk-form-width-large.uk-margin-small.uk-align-center
+    table#servTable.uk-table.uk-table-striped.uk-table-small
+      thead
+        tr
+          th.uk-text-primary Name
+            button(uk-icon="icon: arrow-up; ratio: 1").uk-text-primary
+            button(uk-icon="icon: arrow-down; ratio: 1").uk-text-primary
+          //th.uk-text-primary Name
+            button(uk-icon="icon: arrow-up; ratio: 1").uk-text-primary
+            button(uk-icon="icon: arrow-down; ratio: 1").uk-text-primary
+          th.uk-text-primary State
+            button(uk-icon="icon: arrow-up; ratio: 1").uk-text-primary
+            button(uk-icon="icon: arrow-down; ratio: 1").uk-text-primary
+          th.uk-text-primary Start Mode
+            button(uk-icon="icon: arrow-up; ratio: 1").uk-text-primary
+            button(uk-icon="icon: arrow-down; ratio: 1").uk-text-primary
+          th.uk-text-primary Process ID
+            button(uk-icon="icon: arrow-up; ratio: 1").uk-text-primary
+            button(uk-icon="icon: arrow-down; ratio: 1").uk-text-primary
+          th.uk-text-primary Path
+            button(uk-icon="icon: arrow-up; ratio: 1").uk-text-primary
+            button(uk-icon="icon: arrow-down; ratio: 1").uk-text-primary
+          th.uk-text-primary Start/Stop
+      tbody#servBody
+    div#loader-wrapper
+      div#loader
+      div.loader-section.section-left
+      div.loader-section.section-right

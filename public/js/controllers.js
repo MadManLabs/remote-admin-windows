@@ -1,8 +1,10 @@
 var ctrl = angular.module('controllers', ['directives']);
 
+var socket = io();
+
 ctrl.controller('detailsController', function($scope) {
-  var socket = io();
   socket.on('list-info', function(info) {
+    $('body').addClass('loaded');
     $('#infoTable').empty();
     $('#infoTable').append("<tr><td>Computer Name</td><td>" + info.ComputerName + "</td></tr>");
     $('#infoTable').append("<tr><td>Description</td><td>" + info.Description + "</td></tr>");
@@ -47,15 +49,15 @@ ctrl.controller('processesController', function($scope) {
   $('#search').keyup(function() {
     filter(this); 
   });
-
-  var socket = io();
   socket.on('list-processes', function(processes) {
+    $('body').addClass('loaded');
     $('#procBody').empty();
     for (i in processes) {
       var proc = processes[i];
       $('#procBody').append("<tr><td class='id'>" + proc.ID + "</td><td class='name'>" + proc.Name + "</td><td>" + proc.Memory + "</td><td class='killProc'><button uk-icon='icon: close; ratio: 1'></button></td></tr>");
     }
     $('.killProc').click(function() {
+      $('body').removeClass('loaded');
       var killcheck = confirm('Are you sure you want to kill this process?');
       if (killcheck) {
         var id = $(this).parent().children('.id').text();
@@ -97,16 +99,234 @@ ctrl.controller('powershellController', function($scope) {
   };
   langTools.addCompleter(customCompleter);
 
-  var socket = io();
-
   $scope.sendCommand = function() {
+    $('body').removeClass('loaded');
     var command = editor.getValue();
     socket.emit('command', command)
   };
-
   socket.on('output', function(output) {
+    $('body').addClass('loaded');
     var run = $('#run').detach();
     $('#output').text(output);
     run.prependTo('#output');
+  });
+});
+
+ctrl.controller('softwareController', function($scope) {
+  function filter(element) {
+    var value = $(element).val().toLowerCase();
+    $("#softBody > tr").hide().filter(function() {
+      return $(this).children('.id').text().toLowerCase().indexOf(value) > -1;
+    }).show();
+  }
+  $('#search').keyup(function() {
+    filter(this); 
+  });
+  socket.on('list-software', function(software) {
+    $('body').addClass('loaded');
+    $('#softBody').empty();
+    for (i in software) {
+      var soft = software[i];
+      $('#softBody').append("<tr><td class='id'>" + soft.Name + "</td><td>" + soft.Description + "</td><td>" + soft.InstallDate + "</td><td>" + soft.Vendor + "</td><td>" + soft.Version + "</td><td class='killSoft'><button uk-icon='icon: close; ratio: 1'></button></td></tr>");
+    }
+    $('.killSoft').click(function() {
+      $('body').removeClass('loaded');
+      var killcheck = confirm('Are you sure you want to uninstall this program?');
+      if (killcheck) {
+        var id = $(this).parent().children('.id').text();
+        socket.emit('kill-software', id);
+      }
+    });
+    $('#softTable').tablesorter();
+  });
+  socket.on('kill-soft-succ', function(nothing) {
+    UIkit.notification({
+      message: "program uninstalled",
+      status: 'primary',
+      pos: 'top-center',
+      timeout: 5000
+    });
+  });
+  socket.on('error', function(error) {
+      UIkit.notification({
+        message: "An error occured",
+        status: 'danger',
+        pos: 'top-center',
+        timeout: 3000
+      });
+  });
+});
+
+ctrl.controller('servicesController', function($scope) {
+  function filter(element) {
+    var value = $(element).val().toLowerCase();
+    $("#servBody > tr").hide().filter(function() {
+      return $(this).children('.id').text().toLowerCase().indexOf(value) > -1;
+    }).show();
+  }
+  $('#search').keyup(function() {
+    filter(this); 
+  });
+  socket.on('list-services', function(services) {
+    $('body').addClass('loaded');
+    $('#servBody').empty();
+    for (i in services) {
+      var serv = services[i];
+      if (serv.State == "Running") {
+        $('#servBody').append("<tr><td class='id' id='" + serv.Name + "'>" + serv.DisplayName + "</td><td>" + serv.State + "</td><td>" + serv.StartMode + "</td><td>" + serv.ProcessId + "</td><td>" + serv.PathName + "</td><td class='killServ'><button uk-icon='icon: close; ratio: 1'></button></td></tr>");
+        //$('#servBody').append("<tr><td class='id'>" + serv.DisplayName + "</td><td>" + serv.Name + "</td><td>" + serv.State + "</td><td>" + serv.StartMode + "</td><td>" + serv.ProcessId + "</td><td>" + serv.PathName + "</td><td class='killServ'><button uk-icon='icon: close; ratio: 1'></button></td></tr>");
+      } else {
+        $('#servBody').append("<tr><td class='id' id='" + serv.Name + "'>" + serv.DisplayName + "</td><td>" + serv.State + "</td><td>" + serv.StartMode + "</td><td>" + serv.ProcessId + "</td><td>" + serv.PathName + "</td><td class='killServ'><button uk-icon='icon: play; ratio: 1'></button></td></tr>");
+        //$('#servBody').append("<tr><td class='id'>" + serv.DisplayName + "</td><td>" + serv.Name + "</td><td>" + serv.State + "</td><td>" + serv.StartMode + "</td><td>" + serv.ProcessId + "</td><td>" + serv.PathName + "</td><td class='killServ'><button uk-icon='icon: play; ratio: 1'></button></td></tr>");
+      }
+    }
+    $('.killServ').click(function() {
+      $('body').removeClass('loaded');
+      var id = $(this).parent().children('.id').attr('id');
+      socket.emit('kill-service', id);
+    });
+    $('#servTable').tablesorter();
+  });
+  socket.on('kill-serv-succ', function(nothing) {
+    UIkit.notification({
+      message: "service stopped",
+      status: 'primary',
+      pos: 'top-center',
+      timeout: 5000
+    });
+  });
+  socket.on('error', function(error) {
+      UIkit.notification({
+        message: "An error occured",
+        status: 'danger',
+        pos: 'top-center',
+        timeout: 3000
+      });
+  });
+});
+
+ctrl.controller('filesController', function($scope) {
+  socket.on('list-files', function(files) {
+    $('body').addClass('loaded');
+    $('#fileList').empty();
+    for (i in files) {
+      var filefolder = files[i];
+      if (filefolder.Type == "drive") {
+        $('#fileList').append("<li><a class='uk-margin-small-right' data-uk-icon='icon: server; ratio: 1'></a><a class='drivepath uk-button uk-button-default uk-text-primary' id='" + filefolder.Path + "'>" + filefolder.Name + "</a></li>");
+      } else if (filefolder.Type == "folder") {
+        $('#fileList').append("<li class='dropzone todrag draggable drag-drop'><a class='name uk-margin-small-right' data-uk-icon='icon: folder; ratio: 1'></a><a class='folderpath uk-button uk-button-default uk-text-primary' id='" + filefolder.Path + "'>" + filefolder.Name + "</a></li>");
+      } else if (filefolder.Type == "file") {
+        $('#fileList').append("<li class='dropfile todrag draggable drag-drop'><a class='name uk-margin-small-right' data-uk-icon='icon: file; ratio: 1'></a><label class='filepath' id='" + filefolder.Path + "'>" + filefolder.Name + "</label></li>");
+      }
+    }
+    $('.drivepath').click(function() {
+      var location = $(this).attr('id');
+      $('body').removeClass('loaded');
+      socket.emit('get-files', location);
+    });
+    $('.folderpath').click(function() {
+      var location = $(this).attr('id');
+      $('body').removeClass('loaded');
+      socket.emit('get-files', location);
+    });
+    // target elements with the "draggable" class
+    interact('.draggable')
+    .draggable({
+      // enable inertial throwing
+      inertia: true,
+      // keep the element within the area of it's parent
+      restrict: {
+        restriction: "parent",
+        endOnly: true,
+        elementRect: { top: 0, left: 0, bottom: 1, right: 1 }
+      },
+      // enable autoScroll
+      autoScroll: true,
+
+      // call this function on every dragmove event
+      onmove: dragMoveListener,
+      // call this function on every dragend event
+      onend: function (event) {
+        
+      }
+    });
+
+    function dragMoveListener (event) {
+      var target = event.target,
+          // keep the dragged position in the data-x/data-y attributes
+          x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx,
+          y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+      // translate the element
+      target.style.webkitTransform =
+      target.style.transform =
+        'translate(' + x + 'px, ' + y + 'px)';
+
+      // update the posiion attributes
+      target.setAttribute('data-x', x);
+      target.setAttribute('data-y', y);
+    }
+    
+    interact('.dropzone').dropzone({
+      // only accept elements matching this CSS selector
+      accept: '.todrag',
+      // Require a 75% element overlap for a drop to be possible
+      overlap: 0.75,
+
+      // listen for drop related events:
+
+      ondropactivate: function (event) {
+        // add active dropzone feedback
+        event.target.classList.add('drop-active');
+      },
+      ondragenter: function (event) {
+        var draggableElement = event.relatedTarget,
+            dropzoneElement = event.target;
+
+        // feedback the possibility of a drop
+        dropzoneElement.classList.add('drop-target');
+        draggableElement.classList.add('can-drop');
+      },
+      ondragleave: function (event) {
+        // remove the drop feedback style
+        event.target.classList.remove('drop-target');
+        event.relatedTarget.classList.remove('can-drop');
+      },
+      ondrop: function (event) {
+        $(event.relatedTarget).hide();
+        if ($(event.relatedTarget).hasClass('dropzone')) {
+          var oldpath = $(event.relatedTarget).children('.folderpath').attr('id');
+          var newpath = $(event.target).children('.folderpath').attr('id');
+        } else if ($(event.relatedTarget).hasClass('dropfile')) {
+          var name = $(event.relatedTarget).children('.filepath').text();
+          var oldpath = $(event.relatedTarget).children('.filepath').attr('id');
+          var prevpath = oldpath + "\\" + name;
+          var newpath = $(event.relatedTarget).children('.folderpath').attr('id');
+          var nextpath = newpath + "\\" + name;
+          socket.emit('move-file', {'newpath': newpath, 'oldpath': oldpath});
+        }
+      },
+      ondropdeactivate: function (event) {
+        // remove active dropzone feedback
+        event.target.classList.remove('drop-active');
+        event.target.classList.remove('drop-target');
+      }
+    });
+  });
+  socket.on('show-move-result', function(result) {
+    UIkit.notification({
+      message: result,
+      status: 'primary',
+      pos: 'top-center',
+      timeout: 5000
+    });
+  });
+  socket.on('error', function(error) {
+      UIkit.notification({
+        message: "An error occured",
+        status: 'danger',
+        pos: 'top-center',
+        timeout: 3000
+      });
   });
 });

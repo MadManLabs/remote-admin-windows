@@ -1,0 +1,15 @@
+extends layout.pug
+
+block navbar
+  a(href="/files").uk-navbar-item.uk-logo File Explorer
+
+block content
+  div(ng-controller="filesController")
+    h2.uk-heading-divider.uk-text-center.uk-text-primary File Explorer
+    #filePanel
+      ul#fileList.uk-list.uk-list-striped
+    input(type="hidden", value= path)#path
+    div#loader-wrapper
+      div#loader
+      div.loader-section.section-left
+      div.loader-section.section-right
