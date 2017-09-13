@@ -1,11 +1,20 @@
 ## Remote Admin - Windows
-This is a web-based remote management tool for Windows built with Node.js. It is a combination of my other Windows remote tools.  Right now it features a system details viewer, a process manager, and a Powershell terminal.
+This is a web-based remote management tool for Windows built with Node.js. It is a combination of my other Windows remote tools.  Right now it features:
+* a system details viewer
+* a process manager
+* a service manager
+* a software list
+* a file manager
+* a Powershell terminal.
 
-Tools I plan to add:
+Features I plan to add:
 
-* file manager
-* system resource monitor (real-time)
+* the ability to uninstall programs
+* the ability to change a service's start mode
+* the ability to download files
+* a system resource monitor (real-time)
 * possibly a task scheduler
+* possibly a registry editor
 
 To run this this project, you must have Node.js installed, along with npm, the Node.js package manager.
 
