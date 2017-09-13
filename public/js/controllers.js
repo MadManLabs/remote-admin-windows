@@ -3,6 +3,7 @@ var ctrl = angular.module('controllers', ['directives']);
 var socket = io();
 
 ctrl.controller('detailsController', function($scope) {
+  socket.emit('get-info', "");
   socket.on('list-info', function(info) {
     $('body').addClass('loaded');
     $('#infoTable').empty();
@@ -40,6 +41,7 @@ ctrl.controller('detailsController', function($scope) {
 });
 
 ctrl.controller('processesController', function($scope) {
+  socket.emit('get-processes', "");
   function filter(element) {
     var value = $(element).val().toLowerCase();
     $("#procBody > tr").hide().filter(function() {
@@ -135,6 +137,7 @@ ctrl.controller('powershellController', function($scope) {
 });
 
 ctrl.controller('softwareController', function($scope) {
+  socket.emit('get-software', "");
   function filter(element) {
     var value = $(element).val().toLowerCase();
     $("#softBody > tr").hide().filter(function() {
@@ -149,13 +152,15 @@ ctrl.controller('softwareController', function($scope) {
     $('#softBody').empty();
     for (i in software) {
       var soft = software[i];
-      $('#softBody').append("<tr><td class='id'>" + soft.Name + "</td><td>" + soft.Description + "</td><td>" + soft.InstallDate + "</td><td>" + soft.Vendor + "</td><td>" + soft.Version + "</td><td class='killSoft'><button uk-icon='icon: close; ratio: 1'></button></td></tr>");
+      $('#softBody').append("<tr><td class='id'>" + soft.Name + "</td><td class='.pid'>" + soft.Description + "</td><td>" + soft.InstallDate + "</td><td>" + soft.Vendor + "</td><td>" + soft.Version + "</td>" +
+      //<td class='killSoft'><button uk-icon='icon: close; ratio: 1'></button></td>
+      + "</tr>");
     }
     $('.killSoft').click(function() {
       $('body').removeClass('loaded');
       var killcheck = confirm('Are you sure you want to uninstall this program?');
       if (killcheck) {
-        var id = $(this).parent().children('.id').text();
+        var id = $(this).parent().children('.pid').text();
         socket.emit('kill-software', id);
       }
     });
@@ -180,6 +185,7 @@ ctrl.controller('softwareController', function($scope) {
 });
 
 ctrl.controller('servicesController', function($scope) {
+  socket.emit('get-services', "");
   function filter(element) {
     var value = $(element).val().toLowerCase();
     $("#servBody > tr").hide().filter(function() {
@@ -228,35 +234,84 @@ ctrl.controller('servicesController', function($scope) {
 });
 
 ctrl.controller('filesController', function($scope) {
+  socket.emit('get-drives', "");
   var upfld = "";
   socket.on('list-files', function(files) {
     $('body').addClass('loaded');
     $('#fileList').empty();
-    $('#fileList').append("<li class='dropdown dropzone drag-drop'><a class='uk-margin-small-right' data-uk-icon='icon: close; ratio: 1'></a>Drag files here to delete them permanently<a class='uk-margin-small-left' data-uk-icon='icon: close; ratio: 1'></a></li>");
     $('#fileList').append("<li class='dropup dropzone drag-drop'><a class='uk-margin-small-right' data-uk-icon='icon: arrow-up; ratio: 1'></a>Drag files here to move them to the parent directory<a class='uk-margin-small-left' data-uk-icon='icon: arrow-up; ratio: 1'></a></li>");
     for (i in files) {
       var filefolder = files[i];
       if (filefolder.Type == "drive") {
         $('#fileList').append("<li><a class='uk-margin-small-right' data-uk-icon='icon: server; ratio: 1'></a><a class='drivepath uk-button uk-button-default uk-text-primary' id='" + filefolder.Path + "'>" + filefolder.Name + "</a></li>");
       } else if (filefolder.Type == "folder") {
-        $('#fileList').append("<li class='dropzone todrag draggable drag-drop'><a class='name uk-margin-small-right' data-uk-icon='icon: folder; ratio: 1'></a><a class='folderpath uk-button uk-button-default uk-text-primary' id='" + filefolder.Path + "'>" + filefolder.Name + "</a></li>");
+        $('#fileList').append("<li class='dropzone todrag draggable drag-drop'><a class='name uk-margin-small-right' data-uk-icon='icon: folder; ratio: 1'></a><a class='folderpath uk-button uk-button-default uk-text-primary' id='" + filefolder.Path + "'>" + filefolder.Name + "</a><span style='float:right;'><a class='renameFolder uk-margin-small-right' data-uk-icon='icon: pencil; ratio: 1.5'></a><a class='delFolder' data-uk-icon='icon: close; ratio: 1.5'></a></span></li>");
       } else if (filefolder.Type == "file") {
-        $('#fileList').append("<li class='dropfile todrag draggable drag-drop'><a class='name uk-margin-small-right' data-uk-icon='icon: file; ratio: 1'></a><label class='filepath' id='" + filefolder.Path + "'>" + filefolder.Name + "</label></li>");
+        $('#fileList').append("<li class='dropfile todrag draggable drag-drop'><a class='name uk-margin-small-right' data-uk-icon='icon: file; ratio: 1'></a><label class='filepath' id='" + filefolder.Path + "'>" + filefolder.Name + "</label><span style='float:right;'><a class='renameFile uk-margin-small-right' data-uk-icon='icon: pencil; ratio: 1.5'></a><a class='delFile' data-uk-icon='icon: close; ratio: 1.5'></a></span></li>");
       }
     }
+    //$('#fileList').append("<li class='dropdown dropzone drag-drop'><a class='uk-margin-small-right' data-uk-icon='icon: close; ratio: 1'></a>Drag files here to delete them permanently<a class='uk-margin-small-left' data-uk-icon='icon: close; ratio: 1'></a></li>");
     $('.drivepath').click(function() {
-      var location = $(this).attr('id');
-      upfld = location;
-      $('#goloc').val(upfld);
+      $scope.location = $(this).attr('id');
+      $('#goloc').val($(this).attr('id'));
       $('body').removeClass('loaded');
-      socket.emit('get-files', location);
+      socket.emit('get-files', $scope.location);
     });
     $('.folderpath').click(function() {
-      var location = $(this).attr('id');
-      upfld = location;
-      $('#goloc').val(upfld);
+      $scope.location = $(this).attr('id');
+      $('#goloc').val($(this).attr('id'));
       $('body').removeClass('loaded');
-      socket.emit('get-files', location);
+      socket.emit('get-files', $scope.location);
+    });
+    $('.renameFolder').click(function() {
+      var refolder = prompt("Please enter the new name for the folder:");
+      if (refolder == "") {
+        UIkit.notification({
+          message: "Please enter a folder name",
+          status: 'primary',
+          pos: 'top-center',
+          timeout: 5000
+        });
+      } else {
+        socket.emit('move-folder', {'newpath': $scope.location + "\\" + refolder, 'oldpath': $(this).parent().parent().children('.folderpath').attr('id')});
+      }
+    });
+    $('.renameFile').click(function() {
+      var refile = prompt("Please enter the new name for the file:");
+      if (refile == "") {
+        UIkit.notification({
+          message: "Please enter a file name",
+          status: 'primary',
+          pos: 'top-center',
+          timeout: 5000
+        });
+      } else {
+        socket.emit('move-file', {'newpath': $scope.location + "\\" + refile, 'oldpath': $(this).parent().parent().children('.filepath').attr('id')});
+      }
+    });
+    $('.delFolder').click(function() {
+      if (confirm("Are you sure you want to delete this folder?")) {
+        socket.emit('delete-folder', $(this).parent().parent().children('.folderpath').attr('id'));
+      } else {
+        UIkit.notification({
+          message: "deletion cancelled",
+          status: 'primary',
+          pos: 'top-center',
+          timeout: 2000
+        });
+      }
+    });
+    $('.delFile').click(function() {
+      if (confirm("Are you sure you want to delete this file?")) {
+        socket.emit('delete-file', $(this).parent().parent().children('.filepath').attr('id'));
+      } else {
+        UIkit.notification({
+          message: "deletion cancelled",
+          status: 'primary',
+          pos: 'top-center',
+          timeout: 2000
+        });
+      }
     });
     // target elements with the "draggable" class
     interact('.draggable')
@@ -299,9 +354,7 @@ ctrl.controller('filesController', function($scope) {
       accept: '.todrag',
       // Require a 75% element overlap for a drop to be possible
       overlap: 0.75,
-
       // listen for drop related events:
-
       ondropactivate: function (event) {
         // add active dropzone feedback
         event.target.classList.add('drop-active');
@@ -309,7 +362,6 @@ ctrl.controller('filesController', function($scope) {
       ondragenter: function (event) {
         var draggableElement = event.relatedTarget,
             dropzoneElement = event.target;
-
         // feedback the possibility of a drop
         dropzoneElement.classList.add('drop-target');
         draggableElement.classList.add('can-drop');
@@ -324,7 +376,8 @@ ctrl.controller('filesController', function($scope) {
           var name = $(event.relatedTarget).children('.folderpath').text();
           var oldpath = $(event.relatedTarget).children('.folderpath').attr('id');
           if ($(event.target).hasClass('dropup')) {
-            var nextpath = oldpath.substring(oldpath.lastIndexOf('\\'), -1) + "\\" + name;
+            var nextpath = $scope.location.substring(0, $scope.location.lastIndexOf('\\')) + "\\" + name;
+            console.log(nextpath);
           } else {
             var newpath = $(event.target).children('.folderpath').attr('id');
             var nextpath = newpath + "\\" + name;
@@ -334,11 +387,10 @@ ctrl.controller('filesController', function($scope) {
           var name = $(event.relatedTarget).children('.filepath').text();
           var oldpath = $(event.relatedTarget).children('.filepath').attr('id');
           if ($(event.target).hasClass('dropup')) {
-            var nextpath = oldpath.substring(oldpath.lastIndexOf('\\'), -1) + "\\" + name;
+            var nextpath = $scope.location.substring(0, $scope.location.lastIndexOf('\\')) + "\\" + name;
             socket.emit('move-file', {'newpath': nextpath, 'oldpath': oldpath});
-          } else if ($(event.target).hasClass('dropdown')) {
-            var delcheck = confirm("Are you sure you want to delete this file?");
-            if (delcheck) {
+          /*} else if ($(event.target).hasClass('dropdown')) {
+            if (confirm("Are you sure you want to delete this file?")) {
               socket.emit('delete-file', oldpath);
             } else {
               UIkit.notification({
@@ -347,7 +399,7 @@ ctrl.controller('filesController', function($scope) {
                 pos: 'top-center',
                 timeout: 2000
               });
-            }
+            }*/
           } else {
             var newpath = $(event.target).children('.folderpath').attr('id');
             var nextpath = newpath + "\\" + name;
@@ -364,7 +416,7 @@ ctrl.controller('filesController', function($scope) {
     });
   });
   socket.on('show-result', function(result) {
-    socket.emit('get-files', upfld);
+    socket.emit('get-files', $scope.location);
     UIkit.notification({
       message: result,
       status: 'primary',
@@ -382,10 +434,11 @@ ctrl.controller('filesController', function($scope) {
   });
   $('#goup').click(function() {
     $('body').removeClass('loaded');
-    upfld = upfld.substring(upfld.lastIndexOf('\\'), -1);
+    upfld = $scope.location.substring(0, $scope.location.lastIndexOf('\\'));
+    console.log(upfld);
     if (upfld.length > 3) {
       socket.emit('get-files', upfld);
-      $('#goloc').val(upfld);
+      $scope.location = upfld;
     } else {
       socket.emit('get-drives', "");
     }    
@@ -394,6 +447,7 @@ ctrl.controller('filesController', function($scope) {
     $('body').removeClass('loaded');
     socket.emit('get-drives', "");
     $('#goloc').val("");
+    $scope.location = "";
   });
   $('#createfile').click(function() {
     var newfile = prompt("Please enter a name for the new file:");
@@ -406,7 +460,7 @@ ctrl.controller('filesController', function($scope) {
       });
     } else {
       $('body').removeClass('loaded');
-      var newflpth = upfld + "\\" + newfile;
+      var newflpth = $scope.location + "\\" + newfile;
       socket.emit('new-file', newflpth);
     }
   });
@@ -421,13 +475,17 @@ ctrl.controller('filesController', function($scope) {
       });
     } else {
       $('body').removeClass('loaded');
-      var newflpth = upfld + "\\" + newfolder;
+      var newflpth = $scope.location + "\\" + newfolder;
       socket.emit('new-folder', newflpth);
     }
   });
+  $('#refresh').click(function() {
+    if ($scope.location != "") {
+      socket.emit('get-files', $scope.location);
+    }
+  });
   $scope.golocation = function() {
-    if ($scope.location == "") {
-      upfld = $scope.location;
+    if ($scope.location != "") {
       socket.emit('get-files', $scope.location);
     }
   };

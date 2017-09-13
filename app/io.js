@@ -7,58 +7,58 @@ module.exports = function(io) {
   io.on('connection', function(client) {
     console.log("Client connected");
 
-    listInfo("", function(error, info) {
-      if (error) {
-        io.emit('error', error);
-        console.log(error);
-      } else {
-        io.emit('list-info', info);
-      }
-    });
-
-    listDrives("", function(error, drives) {
-      if (error) {
-        io.emit('error', error);
-        console.log(error);
-      } else {
-        io.emit('list-drives', drives);
-      }
-    });
-
-    listProcesses("", function(error, processes) {
-      if (error) {
-        io.emit('error', error);
+    client.on('get-info', function(nothing) {
+      listInfo("", function(error, info) {
+        if (error) {
+          io.emit('error', error);
           console.log(error);
-      } else {
-        io.emit('list-processes', processes);
-      }
+        } else {
+          io.emit('list-info', info);
+        }
+      });
+      listDrives("", function(error, drives) {
+        if (error) {
+          io.emit('error', error);
+          console.log(error);
+        } else {
+          io.emit('list-drives', drives);
+        }
+      });
     });
 
-    /*listSoftware("", function(error, software) {
-      if (error) {
-        io.emit('error', error);
-          console.log(error);
-      } else {
-        io.emit('list-software', software);
-      }
+    client.on('get-processes', function(nothing) {
+      listProcesses("", function(error, processes) {
+        if (error) {
+          io.emit('error', error);
+            console.log(error);
+        } else {
+          io.emit('list-processes', processes);
+        }
+      });
     });
 
-    listServices("", function(error, services) {
-      if (error) {
-        io.emit('error', error);
-          console.log(error);
-      } else {
-        io.emit('list-services', services);
-      }
-    });*/
 
-    listDriveFolders("", function(error, drives) {
-      if (error) {
-        io.emit('error', error);
-        console.log(error);
-      } else {
-        io.emit('list-files', drives);
-      }
+    client.on('get-software', function(nothing) {
+      listSoftware("", function(error, software) {
+        if (error) {
+          io.emit('error', error);
+            console.log(error);
+        } else {
+          io.emit('list-software', software);
+        }
+      });
+    });
+
+
+    client.on('get-services', function(nothing) {
+      listServices("", function(error, services) {
+        if (error) {
+          io.emit('error', error);
+            console.log(error);
+        } else {
+          io.emit('list-services', services);
+        }
+      });
     });
 
     
@@ -200,6 +200,28 @@ module.exports = function(io) {
       });
     });
 
+    client.on('delete-file', function(path) {
+      deleteFile(path, function(error, result) {
+        if (error) {
+          io.emit('error', error);
+          console.log(error);
+        } else {
+          io.emit('show-result', result);
+        }
+      });
+    });
+
+    client.on('delete-folder', function(path) {
+      deleteFolder(path, function(error, result) {
+        if (error) {
+          io.emit('error', error);
+          console.log(error);
+        } else {
+          io.emit('show-result', result);
+        }
+      });
+    });
+
     client.on('new-file', function(newflpth) {
       newFile(newflpth, function(error, result) {
         if (error) {
@@ -224,6 +246,62 @@ module.exports = function(io) {
   });
 }
 
+var deleteFolder =  edge.func(function() {/*
+    #r "System.Management.dll"
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Management;
+    using System.Text;
+    using System.Diagnostics;
+    using System.Threading.Tasks;
+    using System.IO;
+
+
+    public class Startup
+    {
+      public async Task<object> Invoke(string input)
+      {
+        if (Directory.Exists(input))
+        {
+          Directory.Delete(input);
+          return "Folder successfully deleted";
+        } else {
+          return "A folder with that name doesn't exist";
+        }
+        return "Nothing happened";        
+      }
+    }
+*/});
+var deleteFile =  edge.func(function() {/*
+    #r "System.Management.dll"
+
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Management;
+    using System.Text;
+    using System.Diagnostics;
+    using System.Threading.Tasks;
+    using System.IO;
+
+
+    public class Startup
+    {
+      public async Task<object> Invoke(string input)
+      {
+        if (File.Exists(input))
+        {
+          File.Delete(input);
+          return "File successfully deleted";
+        } else {
+          return "A file with that name doesn't exist";
+        }
+        return "Nothing happened";        
+      }
+    }
+*/});
 var newFolder =  edge.func(function() {/*
     #r "System.Management.dll"
 
@@ -560,43 +638,13 @@ var killSoft =  edge.func(function() {/*
     {
         public async Task<object> Invoke(object input)
         {
-
-        ManagementScope scope = new ManagementScope(@"\\.\root\cimv2");
-        scope.Connect();
-        ObjectQuery query = new ObjectQuery("SELECT * FROM Win32_Product WHERE Name = '" + input + "'");
-        ManagementObjectSearcher searcher = new ManagementObjectSearcher(scope, query);
-
-        ManagementObjectCollection queryCollection = searcher.Get();
-        foreach (ManagementObject m in queryCollection)
-        {
-          try
-          {
-            if (m["Name"].ToString() == input)
-            {
-              string ident = m["IdentifyingNumber"].ToString();
-              string UninstallCommandString = "/x {0} /qn";
-
-              Process process = new Process();
-              ProcessStartInfo startInfo = new ProcessStartInfo();
-              process.StartInfo = startInfo;
-
-              startInfo.UseShellExecute = false;
-              startInfo.RedirectStandardError = true;
-
-              startInfo.FileName = "msiexec.exe";
-              startInfo.Arguments = string.Format(UninstallCommandString, ident);
-
-              process.Start();
-              return true;
-            }
-          }
-          catch (Exception ex)
-          {
-            return false;
-          }
+          ProcessStartInfo info = new ProcessStartInfo(@"msiexec");
+          info.UseShellExecute = false;
+          info.Verb = "runas";
+          info.Arguments = "/qn /quiet /x " + input;
+          Process.Start(info);
+          return true;
         }
-        return false;
-      }
     }
 */});
 var listSoftware = edge.func(function() {/*
@@ -651,7 +699,7 @@ var listSoftware = edge.func(function() {/*
         foreach (ManagementObject m in queryCollection)
         {
           string Name = m["Name"].ToString();
-          string Description = m["Description"].ToString();
+          string Description = m["IdentifyingNumber"].ToString();
           string InstallDate = m["InstallDate"].ToString();
           string Vendor = m["Vendor"].ToString();
           string Version = m["Version"].ToString();

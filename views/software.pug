@@ -1,7 +1,7 @@
 extends layout.pug
 
 block navbar
-  a(href="/software").uk-navbar-item.uk-logo Software
+  a(href="/software").uk-navbar-item.uk-logo Software Manager
 
 block content
   div(ng-controller="softwareController")
@@ -13,7 +13,7 @@ block content
           th.uk-text-primary Name
             button(uk-icon="icon: arrow-up; ratio: 1").uk-text-primary
             button(uk-icon="icon: arrow-down; ratio: 1").uk-text-primary
-          th.uk-text-primary Description
+          th.uk-text-primary Product ID
             button(uk-icon="icon: arrow-up; ratio: 1").uk-text-primary
             button(uk-icon="icon: arrow-down; ratio: 1").uk-text-primary
           th.uk-text-primary Install Date
@@ -25,7 +25,7 @@ block content
           th.uk-text-primary Version
             button(uk-icon="icon: arrow-up; ratio: 1").uk-text-primary
             button(uk-icon="icon: arrow-down; ratio: 1").uk-text-primary
-          th.uk-text-primary Uninstall
+          //th.uk-text-primary Uninstall
       tbody#softBody
     div#loader-wrapper
       div#loader
