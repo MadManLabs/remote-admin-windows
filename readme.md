@@ -33,3 +33,13 @@ Run the app:
 And finally, go to http://localhost:6060/ in your web browser.
 
 I would recommend only running this within a local network, as to prevent the entire internet from having the ability to manage your PC.
+
+Screenshots:
+![alt text](https://www.jesserussell.net/wp-content/uploads/2017/11/remote-admin-windows-services.png)
+![alt text](https://www.jesserussell.net/wp-content/uploads/2017/11/remote-admin-windows-loading.png)
+![alt text](https://www.jesserussell.net/wp-content/uploads/2017/11/remote-admin-windows-software.png)
+![alt text](https://www.jesserussell.net/wp-content/uploads/2017/11/remote-admin-windows-drives.png)
+![alt text](https://www.jesserussell.net/wp-content/uploads/2017/11/remote-admin-windows-files.png)
+![alt text](https://www.jesserussell.net/wp-content/uploads/2017/11/remote-admin-windows-ps.png)
+![alt text](https://www.jesserussell.net/wp-content/uploads/2017/11/remote-admin-windows-1.png)
+![alt text](https://www.jesserussell.net/wp-content/uploads/2017/11/remote-admin-windows-2.png)
